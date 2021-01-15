@@ -39,7 +39,7 @@ display_distance = cfg_handle.get('display','distance')
 display_ip = cfg_handle.get('display','display_ip')
 
 # 设置眼动主试机参数 为 全局变量
-eyelink_ip = cfg_handle.get('eyelink','host_ip')
+eyelink_ip = cfg_handle.get('eyelink','eyelink_ip')
 eyelink_sample_rate = cfg_handle.get('eyelink','sample_rate')
 
 # 设置imotions参数 为 全局变量
@@ -100,15 +100,42 @@ def config_EL():
         cfg_handle.read(cfg_file)
 
         # 设置眼动主试机参数 为 全局变量
-        eyelink_ip = cfg_handle.get('eyelink','host_ip')
+        eyelink_ip = cfg_handle.get('eyelink','eyelink_ip')
         eyelink_sample_rate = cfg_handle.get('eyelink','sample_rate')
         eyelink_ip_stringVar.set(eyelink_ip)
         eyelink_sample_rate_stringVar.set(eyelink_sample_rate)
 
         print('Load custom config file complete.')
 
+    def set_eyelink_properties():
+
+        global eyelink_ip
+        global eyelink_ip_stringVar
+        
+        global eyelink_sample_rate
+        global eyelink_sample_rate_stringVar
+
+        cfg_file = 'config_custom.ini'
+        cfg_handle = configparser.ConfigParser()
+        cfg_handle.read(cfg_file)
+
+        # 设置眼动主试机参数 为 全局变量
+        eyelink_ip = eyelink_ip_stringVar.get()
+        eyelink_sample_rate = eyelink_sample_rate_stringVar.get()
+        
+        cfg_handle.set('eyelink', 'eyelink_ip', eyelink_ip)
+        cfg_handle.set('eyelink', 'sample_rate', eyelink_sample_rate)
+        cfg_handle.write(open("config_custom.ini", "w"))
+
+        print('Load custom config file complete.')
+
+        config_EL_window.destroy()
+
     load_EL_defualt_button = ttk.Button(config_EL_window,text='加载默认',width=9,command=load_eyelink_default)
     load_EL_defualt_button.grid(column=0,row=2)
+
+    load_EL_defualt_button = ttk.Button(config_EL_window,text='确认',width=9,command=set_eyelink_properties)
+    load_EL_defualt_button.grid(column=1,row=2)
 
     config_EL_window.mainloop()
 
@@ -117,8 +144,77 @@ def config_iMotions():
     print(imotions_ip)
     pass
 
+def load_ini():
+    file_name = tk.filedialog.askopenfilename(initialdir = os.getcwd(), filetypes=[('配置文件','.ini')]) 
+    cfg_handle = configparser.ConfigParser()
+    cfg_handle.read(file_name)
+
+    global display_x_res
+    global display_y_res
+    global display_x_size
+    global display_y_size
+    global display_distance
+    global display_ip
+    global eyelink_ip
+    global eyelink_sample_rate
+    global imotions_ip
+    global imotions_port
+
+    # 设置被试机参数 为 全局变量
+    display_x_res = cfg_handle.get('display','x_res')
+    display_y_res = cfg_handle.get('display','y_res')
+    display_x_size = cfg_handle.get('display','x_size')
+    display_y_size = cfg_handle.get('display','y_size')
+    display_distance = cfg_handle.get('display','distance')
+    display_ip = cfg_handle.get('display','display_ip')
+
+    # 设置眼动主试机参数 为 全局变量
+    eyelink_ip = cfg_handle.get('eyelink','eyelink_ip')
+    eyelink_sample_rate = cfg_handle.get('eyelink','sample_rate')
+
+    # 设置imotions参数 为 全局变量
+    imotions_ip = cfg_handle.get('imotions','imotions_ip')
+    imotions_port = cfg_handle.get('imotions','imotions_port')
+
+    print('Load custom config file complete.')
+
+def save_ini():
+    
+    global display_x_res
+    global display_y_res
+    global display_x_size
+    global display_y_size
+    global display_distance
+    global display_ip
+    global eyelink_ip
+    global eyelink_sample_rate
+    global imotions_ip
+    global imotions_port
+
+    file_name = tk.filedialog.asksaveasfilename(initialdir = os.getcwd(), filetypes=[('配置文件','.ini')]) 
+    cfg_handle = configparser.ConfigParser()
+    cfg_handle.read('config_default.ini')
+
+    cfg_handle.set('display', 'x_res', display_x_res)
+    cfg_handle.set('display', 'y_res', display_y_res)
+    cfg_handle.set('display', 'x_size', display_x_size)
+    cfg_handle.set('display', 'y_size', display_y_size)
+    cfg_handle.set('display', 'distance', display_distance)
+    cfg_handle.set('display', 'display_ip', display_ip)
+
+    cfg_handle.set('eyelink', 'eyelink_ip', eyelink_ip)
+    cfg_handle.set('eyelink', 'sample_rate', eyelink_sample_rate)
+
+    cfg_handle.set('imotions', 'sample_rate_ip', imotions_ip)
+    cfg_handle.set('imotions', 'sample_rate_port', imotions_port)
+
+    cfg_handle.write(open(file_name,'w'))
+
 options_menu = tk.Menu(menubar,tearoff=False)
 menubar.add_cascade(label='设置', menu=options_menu)
+options_menu.add_command(label='加载配置文件', command=load_ini)
+options_menu.add_command(label='保存配置文件', command=save_ini)
+options_menu.add_separator()#分割线
 options_menu.add_command(label='EyeLink', command=config_EL)
 options_menu.add_command(label='iMotions', command=config_iMotions)
 
