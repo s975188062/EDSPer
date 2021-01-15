@@ -278,7 +278,7 @@ letter_type_Chosen.current(0)  #设置初始显示值，值为元组['values']�
 letter_type_Chosen.config(state='readonly')  #设为只读模式
 
 # 添加button
-action = ttk.Button(device_monty,text="转发\nPost",width=9)   
+action = ttk.Button(device_monty,text="转发",width=9)   
 action.grid(column=3,row=5,rowspan=2)
 
 
