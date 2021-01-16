@@ -285,6 +285,4 @@ action.grid(column=3,row=5,rowspan=2)
 for child in device_monty.winfo_children(): 
     child.grid_configure(padx=3,pady=1)
 
-
-
 esper.mainloop()
