@@ -5,12 +5,6 @@ from tkinter import Menu
 from tkinter import Spinbox
 from tkinter import filedialog
 from tkinter import messagebox
-from math import sin
-from math import cos
-from math import tan
-from math import pi
-from math import radians
-from tkinter.constants import COMMAND
 import pylink
 import socket
 import webbrowser
@@ -18,6 +12,9 @@ import os
 import threading
 import configparser
 
+# 声明全局变量
+global is_posting
+is_posting = 0
 
 # 读取配置文件 ------------------------------------------------
 if os.path.exists('config_custom.ini'):
@@ -50,20 +47,21 @@ print('Load custom config file complete.')
 # 配置文件读取完成 ------------------------------------------------
 
 # 创建 instance
-esper = tk.Tk()
+edsper = tk.Tk()
 
 # 添加窗口标题
-esper.title('Eyelink Data Stream Poster')
+edsper.title('Eyelink Data Stream Poster')
 
 # 关闭resize窗口功能
-esper.resizable(0,0)
+edsper.resizable(0,0)
 
 # 编辑菜单栏
-menubar =tk.Menu(esper)
-esper.config(menu=menubar)
+menubar =tk.Menu(edsper)
+edsper.config(menu=menubar)
 
 def config_EL():
-
+    pass
+    '''
     # 获取已经读取的参数变量
     global eyelink_ip
     global eyelink_sample_rate
@@ -86,6 +84,7 @@ def config_EL():
     eyelink_sample_rate_entry = ttk.Combobox(config_EL_window, width=12, textvariable = eyelink_sample_rate_stringVar)
     eyelink_sample_rate_entry['values'] = ('250', '500', '1000', '2000')
     eyelink_sample_rate_entry.grid(column=1, row=1, sticky='W', padx=10, pady=6)
+    '''
 
     def load_eyelink_default():
 
@@ -140,8 +139,6 @@ def config_EL():
     config_EL_window.mainloop()
 
 def config_iMotions():
-    global imotions_ip
-    print(imotions_ip)
     pass
 
 def load_ini():
@@ -218,71 +215,91 @@ options_menu.add_separator()#分割线
 options_menu.add_command(label='EyeLink', command=config_EL)
 options_menu.add_command(label='iMotions', command=config_iMotions)
 
-device_monty = ttk.LabelFrame(esper, text='请先设置硬件参数，再执行数据转发。\nPlease Set Attributes First Before Post.')
-device_monty.grid(column=0, row=0, padx=8, pady=4)
+# 初始化 el 参数面板 --------------------------------------------------------------------------
+monty_el = ttk.LabelFrame(edsper, text='Eyelink')
+monty_el.grid(column=0, row=0, padx=8, pady=2)
 
-tabControl = ttk.Notebook(esper) 
-tab1 = ttk.Frame(tabControl)            # Create a tab 
-tabControl.add(tab1, text='字号计算器')   
+ttk.Label(monty_el, text="Eyelink IP").grid(column=0, row=0, sticky='W', padx=8, pady=4)
+ttk.Label(monty_el, text="Sample Rate").grid(column=0, row=1, sticky='W', padx=8, pady=4)
 
-ttk.Label(tab1, text="显示器长边").grid(column=1, row=1, sticky='W')
+eyelink_ip_stringVar = tk.StringVar(master = edsper)
+eyelink_ip_entry = ttk.Entry(monty_el, width=12, textvariable = eyelink_ip_stringVar)
+eyelink_ip_entry.grid(column=1, row=0, sticky='W', padx=8, pady=4)
 
+eyelink_sample_rate_stringVar = tk.StringVar(master = edsper)
+eyelink_sample_rate_entry = ttk.Entry(monty_el, width=12, textvariable = eyelink_sample_rate_stringVar)
+eyelink_sample_rate_entry.grid(column=1, row=1, sticky='W', padx=8, pady=4)
 #---------------------------------------------------------------------------------------------------------#
 
+# 初始化 iMotions 参数面板 --------------------------------------------------------------------------------
+monty_im = ttk.LabelFrame(edsper, text='iMotions')
+monty_im.grid(column=0, row=1, padx=8, pady=2, rowspan=3)
+
+ttk.Label(monty_im, text="iMotions IP").grid(column=0, row=0, sticky='W', padx=8, pady=4)
+ttk.Label(monty_im, text="iMotions Port").grid(column=0, row=1, sticky='W', padx=8, pady=4)
+
+imotions_ip_stringVar = tk.StringVar(master = edsper)
+imotions_ip_entry = ttk.Entry(monty_im, width=12, textvariable = imotions_ip_stringVar)
+imotions_ip_entry.grid(column=1, row=0, sticky='W', padx=8, pady=4)
+
+imotions_port_stringVar = tk.StringVar(master = edsper)
+imotions_port_entry = ttk.Entry(monty_im, width=12, textvariable = imotions_port_stringVar)
+imotions_port_entry.grid(column=1, row=1, sticky='W', padx=8, pady=4)
+#---------------------------------------------------------------------------------------------------------#
+
+# 初始化 Display 参数面板 --------------------------------------------------------------------------------
+monty_display = ttk.LabelFrame(edsper, text='Display')
+monty_display.grid(column=1, row=0, padx=8, pady=4, rowspan=2)
 # 添加Lable
-ttk.Label(device_monty, text="显示器长边").grid(column=1, row=1, sticky='W')
-ttk.Label(device_monty, text="显示器短边").grid(column=1, row=2, sticky='W')
-ttk.Label(device_monty, text="分辨率(pix)").grid(column=2, row=0, sticky='W')
-ttk.Label(device_monty, text="物理尺寸(mm)").grid(column=3, row=0, sticky='W')
-ttk.Label(device_monty, text="被试到显示器的距离(mm)").grid(column=1, row=3, columnspan=2, sticky='W')
-
-
-# 添加输入框 ---------------------------------------------------------------
+ttk.Label(monty_display, text="显示器长边").grid(column=1, row=1, sticky='W')
+ttk.Label(monty_display, text="显示器短边").grid(column=1, row=2, sticky='W')
+ttk.Label(monty_display, text="分辨率(pix)").grid(column=2, row=0, sticky='W')
+ttk.Label(monty_display, text="物理尺寸(mm)").grid(column=3, row=0, sticky='W')
 # 物理尺寸 - 长边
-Num_of_Long_Length_1 = tk.StringVar()
-Num_of_Long_Length_Entered_1 = ttk.Entry(device_monty, width=12, textvariable = Num_of_Long_Length_1)
-Num_of_Long_Length_Entered_1.grid(column=3, row=1, sticky='W')
-
+display_h_size_psysical_stringVar = tk.StringVar()
+display_h_size_psysical_entry = ttk.Entry(monty_display, width=12, textvariable = display_h_size_psysical_stringVar)
+display_h_size_psysical_entry.grid(column=3, row=1, sticky='W')
 # 物理尺寸 - 短边
-Num_of_Short_Length_1 = tk.StringVar()
-Num_of_Short_Length_Entered_1 = ttk.Entry(device_monty, width=12, textvariable = Num_of_Short_Length_1)
-Num_of_Short_Length_Entered_1.grid(column=3, row=2, sticky='W')
-
+display_v_size_psysical_stringVar = tk.StringVar()
+display_v_size_psysical_entry = ttk.Entry(monty_display, width=12, textvariable = display_v_size_psysical_stringVar)
+display_v_size_psysical_entry.grid(column=3, row=2, sticky='W')
 # 分辨率 - 长边
-Num_of_Long_Resolution_1 = tk.StringVar()
-Num_of_Long_Resolution_Entered_1 = ttk.Entry(device_monty, width=12, textvariable = Num_of_Long_Resolution_1)
-Num_of_Long_Resolution_Entered_1.grid(column=2, row=1, sticky='W')
-
+display_h_size_pix_stringVar = tk.StringVar()
+display_h_size_pix_entry = ttk.Entry(monty_display, width=12, textvariable = display_h_size_pix_stringVar)
+display_h_size_pix_entry.grid(column=2, row=1, sticky='W')
 # 分辨率 - 短边
-Num_of_Short_Resolution_1 = tk.StringVar()
-Num_of_Short_Resolution_Entered_1 = ttk.Entry(device_monty, width=12, textvariable = Num_of_Short_Resolution_1)
-Num_of_Short_Resolution_Entered_1.grid(column=2, row=2, sticky='W')
+display_v_size_pix_stringVar = tk.StringVar()
+display_v_size_pix_entry = ttk.Entry(monty_display, width=12, textvariable = display_v_size_pix_stringVar)
+display_v_size_pix_entry.grid(column=2, row=2, sticky='W')
+#---------------------------------------------------------------------------------------------------------#
 
-# 被试到显示器的距离
-Num_of_Distance_to_Screen_1 = tk.StringVar()
-Num_of_Distance_to_Screen_Entered_1 = ttk.Entry(device_monty, width=12, textvariable = Num_of_Distance_to_Screen_1)
-Num_of_Distance_to_Screen_Entered_1.grid(column=3, row=3, sticky='W')
+# 初始化 Display 参数面板 --------------------------------------------------------------------------------
+state_stringVar = tk.StringVar()
+state_meaage = ttk.Label(edsper, foreground="green", textvariable = state_stringVar).grid(column=1, row=2, sticky='e',padx=8,pady=1)
+state_stringVar.set('欢迎！请先检查硬件参数，再启动转发。')
+#---------------------------------------------------------------------------------------------------------#
 
-# 单位视角的字符个数
-Num_of_letters_per_angle = tk.StringVar()
-Num_of_letters_per_angle_Entered = ttk.Entry(device_monty, width=12, textvariable = Num_of_letters_per_angle)
-Num_of_letters_per_angle_Entered.grid(column=3, row=4, sticky='W')
-# 添加输入框 ---------------------------------------------------------------
+def click():
 
-# Adding a Combobox
-letter_type = tk.StringVar()
-letter_type_Chosen = ttk.Combobox(device_monty, width=8, textvariable=letter_type)
-letter_type_Chosen['values'] = ('中文', '英文')
-letter_type_Chosen.grid(column=2, row=4)
-letter_type_Chosen.current(0)  #设置初始显示值，值为元组['values']的下标
-letter_type_Chosen.config(state='readonly')  #设为只读模式
+    global is_posting
+
+    if is_posting == 0:
+        display_v_size_pix_entry['state']='disable'
+        state_stringVar.set('转发中……')
+        is_posting = 1
+    else:
+        state_stringVar.set('中断')
+        is_posting = 0
 
 # 添加button
-action = ttk.Button(device_monty,text="转发",width=9)   
-action.grid(column=3,row=5,rowspan=2)
+action = ttk.Button(edsper,text="转发",width=9,command=click)   
+action.grid(column=1,row=3,sticky='e',padx=8,pady=2)
 
+for child in monty_im.winfo_children(): 
+    child.grid_configure(padx=3,pady=2)
+for child in monty_el.winfo_children(): 
+    child.grid_configure(padx=3,pady=2)
+for child in monty_display.winfo_children(): 
+    child.grid_configure(padx=3,pady=2)
 
-for child in device_monty.winfo_children(): 
-    child.grid_configure(padx=3,pady=1)
-
-esper.mainloop()
+edsper.mainloop()
