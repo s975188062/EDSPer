@@ -255,14 +255,6 @@ ttk.Label(monty_display, text="显示器长边").grid(column=1, row=1, sticky='W
 ttk.Label(monty_display, text="显示器短边").grid(column=1, row=2, sticky='W')
 ttk.Label(monty_display, text="分辨率(pix)").grid(column=2, row=0, sticky='W')
 ttk.Label(monty_display, text="物理尺寸(mm)").grid(column=3, row=0, sticky='W')
-# 物理尺寸 - 长边
-display_h_size_psysical_stringVar = tk.StringVar()
-display_h_size_psysical_entry = ttk.Entry(monty_display, width=12, textvariable = display_h_size_psysical_stringVar)
-display_h_size_psysical_entry.grid(column=3, row=1, sticky='W')
-# 物理尺寸 - 短边
-display_v_size_psysical_stringVar = tk.StringVar()
-display_v_size_psysical_entry = ttk.Entry(monty_display, width=12, textvariable = display_v_size_psysical_stringVar)
-display_v_size_psysical_entry.grid(column=3, row=2, sticky='W')
 # 分辨率 - 长边
 display_h_size_pix_stringVar = tk.StringVar()
 display_h_size_pix_entry = ttk.Entry(monty_display, width=12, textvariable = display_h_size_pix_stringVar)
@@ -271,6 +263,14 @@ display_h_size_pix_entry.grid(column=2, row=1, sticky='W')
 display_v_size_pix_stringVar = tk.StringVar()
 display_v_size_pix_entry = ttk.Entry(monty_display, width=12, textvariable = display_v_size_pix_stringVar)
 display_v_size_pix_entry.grid(column=2, row=2, sticky='W')
+# 物理尺寸 - 长边
+display_h_size_psysical_stringVar = tk.StringVar()
+display_h_size_psysical_entry = ttk.Entry(monty_display, width=12, textvariable = display_h_size_psysical_stringVar)
+display_h_size_psysical_entry.grid(column=3, row=1, sticky='W')
+# 物理尺寸 - 短边
+display_v_size_psysical_stringVar = tk.StringVar()
+display_v_size_psysical_entry = ttk.Entry(monty_display, width=12, textvariable = display_v_size_psysical_stringVar)
+display_v_size_psysical_entry.grid(column=3, row=2, sticky='W')
 #---------------------------------------------------------------------------------------------------------#
 
 # 初始化 Display 参数面板 --------------------------------------------------------------------------------
@@ -284,11 +284,34 @@ def click():
     global is_posting
 
     if is_posting == 0:
+
+        # 使输入框失效
         display_v_size_pix_entry['state']='disable'
+        display_h_size_pix_entry['state']='disable'
+        display_v_size_psysical_entry['state']='disable'
+        display_h_size_psysical_entry['state']='disable'
+        imotions_ip_entry['state']='disable'
+        imotions_port_entry['state']='disable'
+        eyelink_ip_entry['state']='disable'
+        eyelink_sample_rate_entry['state']='disable'
+
         state_stringVar.set('转发中……')
+        action['text']='暂停'
         is_posting = 1
+
     else:
+        # 重启输入框
+        display_v_size_pix_entry['state']='normal'
+        display_h_size_pix_entry['state']='normal'
+        display_v_size_psysical_entry['state']='normal'
+        display_h_size_psysical_entry['state']='normal'
+        imotions_ip_entry['state']='normal'
+        imotions_port_entry['state']='normal'
+        eyelink_ip_entry['state']='normal'
+        eyelink_sample_rate_entry['state']='normal'
+
         state_stringVar.set('中断')
+        action['text']='继续'
         is_posting = 0
 
 # 添加button
