@@ -12,7 +12,10 @@ import os
 import threading
 import configparser
 
-# 声明全局变量
+# 声明 转发状态 为全局变量
+# 0 连接断开
+# 1 转发中
+# 2 连接但未转发
 global is_posting
 is_posting = 0
 
