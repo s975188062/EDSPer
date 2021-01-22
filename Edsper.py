@@ -20,6 +20,13 @@ global is_posting
 is_posting = 0
 
 # 读取配置文件 ------------------------------------------------
+
+'''
+先判断是否有默认配置文件，有的话查看最lastrun。
+如果默认配置文件不存在或者lastrun不存在，加载默认。
+否则加载lastrun
+'''
+
 if os.path.exists('config_custom.ini'):
     print('Loading custom config file...')
     cfg_file = 'config_custom.ini'
