@@ -1,3 +1,6 @@
+# To do List ------------------------------------------------
+# 更新lastrun.ini
+# -----------------------------------------------------------
 import tkinter as tk
 from tkinter import ttk
 from tkinter import scrolledtext
