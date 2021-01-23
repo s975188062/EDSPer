@@ -27,7 +27,7 @@ global dummy
 dummy = 0
 
 # 声明EL句柄
-global EL
+global Tracker
 
 # 读取配置文件 ------------------------------------------------
 cfg_handle_lastrun = configparser.ConfigParser()
@@ -286,18 +286,19 @@ def post_data():
 
 def connect():
     
-    global EL
+    global Tracker
     global is_connected
 
     if is_connected == 0:
         if dummy == 0:
             try: #尝试连接Eyelink Host
+                state_stringVar.set('Try to connect to Eyelink.')
                 print('Try to connect to Eyelink.')
-                EL = pylink.EyeLink(str(eyelink_ip))
-                EL.openDataFile('edsper.edf') # open edf file 
-                EL.sendCommand('sample_rate '+str(eyelink_sample_rate)) # set sample rate
+                Tracker = pylink.EyeLink(str(eyelink_ip))
+                Tracker.openDataFile('edsper.edf') # open edf file 
+                Tracker.sendCommand('sample_rate '+str(eyelink_sample_rate)) # set sample rate
 
-                
+
 
                 # 使输入框失效
                 display_y_size_pix_entry['state']='disable'
