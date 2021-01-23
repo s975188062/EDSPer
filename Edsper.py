@@ -28,6 +28,7 @@ dummy = 0
 
 # 声明EL句柄
 global Tracker
+global data_poster
 
 # 读取配置文件 ------------------------------------------------
 cfg_handle_lastrun = configparser.ConfigParser()
@@ -289,11 +290,38 @@ state_meaage = ttk.Label(edsper, foreground="green", textvariable = state_string
 state_stringVar.set('欢迎！请先检查硬件参数，再启动转发。')
 #---------------------------------------------------------------------------------------------------------#
 
+class posting_thread(threading.Thread):
+    def __init__(self, imootions_ip, imotions_port):
+        
+        threading.Thread.__init__(self)
+        self.imootions_ip = imootions_ip
+        self.imotions_port = imotions_port
+
+        self.__flag = threading.Event()     # 用于暂停线程的标识
+        self.__flag.set()       # 设置为True
+        self.__running = threading.Event()      # 用于停止线程的标识
+        self.__running.set()      # 将running设置为True
+        
+    def run(self):
+        while self.__running.isSet():
+            self.__flag.wait()      # 为True时立即返回, 为False时阻塞直到内部的标识位为True后返回
+            pass
+    def pause_post(self):
+        self.__flag.clear()     # 设置为False, 让线程阻塞
+    def continue_post(self):
+        self.__flag.set()    # 设置为True, 让线程停止阻塞
+    def stop_post(self):
+        self.__flag.set()       # 将线程从暂停状态恢复, 如何已经暂停的话
+        self.__running.clear()        # 设置为False    
+
 def post_data():
 
     global is_posting
+    global data_poster
 
     if is_posting == 0:
+
+        data_poster = posting_thread()
 
         state_stringVar.set('转发中……')
         post_button['text']='暂停'
@@ -369,7 +397,14 @@ def connect():
         is_connected = 0
 
 def cal_el():
-    pass
+    global Tracker
+    pylink.openGraphics()
+    Tracker.doTrackerSetup()
+    pylink.closeGraphics()
+
+    err = Tracker.startRecording(1,1,1,1)
+    print(err)
+    pylink.pumpDelay(100) # cache some samples for event parsing
 
 # 添加button
 connect_button = ttk.Button(edsper,text="连接",width=9,command=connect)   
