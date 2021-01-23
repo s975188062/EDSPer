@@ -291,9 +291,11 @@ def connect():
 
     if is_connected == 0:
         if dummy == 0:
-            try:
+            try: #尝试连接Eyelink Host
                 print('Try to connect to Eyelink.')
                 EL = pylink.EyeLink(str(eyelink_ip))
+                
+
 
                 # 使输入框失效
                 display_y_size_pix_entry['state']='disable'
