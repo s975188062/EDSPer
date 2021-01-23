@@ -29,28 +29,48 @@ cfg_handle_lastrun.read('lastrun.ini')
 try:
     cfg_file = cfg_handle.get('lastrun','cnfg_file_name')
 except:
-    cfg_file = 'config_default.ini'
+    if os.path.exists('config_default.ini'):
+        cfg_file = 'config_default.ini'
 
-cfg_handle = configparser.ConfigParser()
-cfg_handle.read(cfg_file)
+        cfg_handle = configparser.ConfigParser()
+        cfg_handle.read(cfg_file)
 
-# 设置被试机参数 为 全局变量
-display_x_res = cfg_handle.get('display','x_res')
-display_y_res = cfg_handle.get('display','y_res')
-display_x_size = cfg_handle.get('display','x_size')
-display_y_size = cfg_handle.get('display','y_size')
-display_distance = cfg_handle.get('display','distance')
-display_ip = cfg_handle.get('display','display_ip')
+        # 设置被试机参数 为 全局变量
+        display_x_res = cfg_handle.get('display','x_res')
+        display_y_res = cfg_handle.get('display','y_res')
+        display_x_size = cfg_handle.get('display','x_size')
+        display_y_size = cfg_handle.get('display','y_size')
+        display_distance = cfg_handle.get('display','distance')
+        display_ip = cfg_handle.get('display','display_ip')
 
-# 设置眼动主试机参数 为 全局变量
-eyelink_ip = cfg_handle.get('eyelink','eyelink_ip')
-eyelink_sample_rate = cfg_handle.get('eyelink','sample_rate')
+        # 设置眼动主试机参数 为 全局变量
+        eyelink_ip = cfg_handle.get('eyelink','eyelink_ip')
+        eyelink_sample_rate = cfg_handle.get('eyelink','sample_rate')
 
-# 设置imotions参数 为 全局变量
-imotions_ip = cfg_handle.get('imotions','imotions_ip')
-imotions_port = cfg_handle.get('imotions','imotions_port')
+        # 设置imotions参数 为 全局变量
+        imotions_ip = cfg_handle.get('imotions','imotions_ip')
+        imotions_port = cfg_handle.get('imotions','imotions_port')
 
-print('Load custom config file complete.')
+        print('Load custom config file complete.')
+
+    else:
+        # 设置被试机参数 为 全局变量
+        display_x_res = 1024
+        display_y_res = 768
+        display_x_size = 375
+        display_y_size = 305
+        display_distance = 655
+        display_ip = '100.1.1.2'
+
+        # 设置眼动主试机参数 为 全局变量
+        eyelink_ip = '100.1.1.1'
+        eyelink_sample_rate = 500
+
+        # 设置imotions参数 为 全局变量
+        imotions_ip = '127.0.0.1'
+        imotions_port = 65535
+
+        print('Load custom config file complete.')
 # 配置文件读取完成 ------------------------------------------------
 
 # 创建 instance
