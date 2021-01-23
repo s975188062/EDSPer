@@ -49,6 +49,7 @@ try:
     # 设置眼动主试机参数 为 全局变量
     eyelink_ip = cfg_handle.get('eyelink','eyelink_ip')
     eyelink_sample_rate = cfg_handle.get('eyelink','sample_rate')
+    eyelink_cal_type = cfg_handle.get('eyelink','eyelink_cal_type')
 
     # 设置imotions参数 为 全局变量
     imotions_ip = cfg_handle.get('imotions','imotions_ip')
@@ -73,6 +74,7 @@ except:
         # 设置眼动主试机参数 为 全局变量
         eyelink_ip = cfg_handle.get('eyelink','eyelink_ip')
         eyelink_sample_rate = cfg_handle.get('eyelink','sample_rate')
+        eyelink_cal_type = cfg_handle.get('eyelink','eyelink_cal_type')
 
         # 设置imotions参数 为 全局变量
         imotions_ip = cfg_handle.get('imotions','imotions_ip')
@@ -92,6 +94,7 @@ except:
         # 设置眼动主试机参数 为 全局变量
         eyelink_ip = '100.1.1.1'
         eyelink_sample_rate = 500
+        eyelink_cal_type = 'HV9'
 
         # 设置imotions参数 为 全局变量
         imotions_ip = '127.0.0.1'
@@ -115,8 +118,8 @@ edsper.config(menu=menubar)
 
 def load_ini():
     file_name = tk.filedialog.askopenfilename(initialdir = os.getcwd(), filetypes=[('配置文件','.ini')]) 
-    cfg_handle = configparser.ConfigParser()
-    cfg_handle.read(file_name)
+    cfg_handle_2_read = configparser.ConfigParser()
+    cfg_handle_2_read.read(file_name)
 
     global display_x_res
     global display_y_res
@@ -130,20 +133,30 @@ def load_ini():
     global imotions_port
 
     # 设置被试机参数 为 全局变量
-    display_x_res = cfg_handle.get('display','x_res')
-    display_y_res = cfg_handle.get('display','y_res')
-    display_x_size = cfg_handle.get('display','x_size')
-    display_y_size = cfg_handle.get('display','y_size')
-    display_distance = cfg_handle.get('display','distance')
-    display_ip = cfg_handle.get('display','display_ip')
+    display_x_res = cfg_handle_2_read.get('display','x_res')
+    display_x_size_pix_stringVar.set(display_x_res)
+    display_y_res = cfg_handle_2_read.get('display','y_res')
+    display_y_size_pix_stringVar.set(display_y_res)
+    display_x_size = cfg_handle_2_read.get('display','x_size')
+    display_x_size_psysical_stringVar.set(display_x_size)
+    display_y_size = cfg_handle_2_read.get('display','y_size')
+    display_y_size_psysical_stringVar.set(display_y_size)
+    display_distance = cfg_handle_2_read.get('display','distance')
+    display_ip = cfg_handle_2_read.get('display','display_ip')
 
     # 设置眼动主试机参数 为 全局变量
-    eyelink_ip = cfg_handle.get('eyelink','eyelink_ip')
-    eyelink_sample_rate = cfg_handle.get('eyelink','sample_rate')
+    eyelink_ip = cfg_handle_2_read.get('eyelink','eyelink_ip')
+    eyelink_ip_stringVar.set(eyelink_ip)
+    eyelink_sample_rate = cfg_handle_2_read.get('eyelink','sample_rate')
+    eyelink_sample_rate_stringVar.set(eyelink_sample_rate)
+    eyelink_cal_type = cfg_handle_2_read.get('eyelink','eyelink_cal_type')
+    eyelink_cal_type_stringVar.set(eyelink_cal_type)
 
     # 设置imotions参数 为 全局变量
-    imotions_ip = cfg_handle.get('imotions','imotions_ip')
-    imotions_port = cfg_handle.get('imotions','imotions_port')
+    imotions_ip = cfg_handle_2_read.get('imotions','imotions_ip')
+    imotions_ip_stringVar.set(imotions_ip)
+    imotions_port = cfg_handle_2_read.get('imotions','imotions_port')
+    imotions_port_stringVar.set(imotions_port)
 
     print('Load custom config file complete.')
 
@@ -157,27 +170,28 @@ def save_ini():
     global display_ip
     global eyelink_ip
     global eyelink_sample_rate
+    global eyelink_cal_type
     global imotions_ip
     global imotions_port
 
     file_name = tk.filedialog.asksaveasfilename(initialdir = os.getcwd(), filetypes=[('配置文件','.ini')]) 
-    cfg_handle = configparser.ConfigParser()
-    cfg_handle.read('config_default.ini')
+    cfg_handle_2_save = configparser.ConfigParser()
+    cfg_handle_2_save.read('config_default.ini')
 
-    cfg_handle.set('display', 'x_res', display_x_res)
-    cfg_handle.set('display', 'y_res', display_y_res)
-    cfg_handle.set('display', 'x_size', display_x_size)
-    cfg_handle.set('display', 'y_size', display_y_size)
-    cfg_handle.set('display', 'distance', display_distance)
-    cfg_handle.set('display', 'display_ip', display_ip)
+    cfg_handle_2_save.set('display', 'x_res', display_x_res)
+    cfg_handle_2_save.set('display', 'y_res', display_y_res)
+    cfg_handle_2_save.set('display', 'x_size', display_x_size)
+    cfg_handle_2_save.set('display', 'y_size', display_y_size)
+    cfg_handle_2_save.set('display', 'distance', display_distance)
+    cfg_handle_2_save.set('display', 'display_ip', display_ip)
 
-    cfg_handle.set('eyelink', 'eyelink_ip', eyelink_ip)
-    cfg_handle.set('eyelink', 'sample_rate', eyelink_sample_rate)
+    cfg_handle_2_save.set('eyelink', 'eyelink_ip', eyelink_ip)
+    cfg_handle_2_save.set('eyelink', 'sample_rate', eyelink_sample_rate)
 
-    cfg_handle.set('imotions', 'sample_rate_ip', imotions_ip)
-    cfg_handle.set('imotions', 'sample_rate_port', imotions_port)
+    cfg_handle_2_save.set('imotions', 'sample_rate_ip', imotions_ip)
+    cfg_handle_2_save.set('imotions', 'sample_rate_port', imotions_port)
 
-    cfg_handle.write(open(file_name,'w'))
+    cfg_handle_2_save.write(open(file_name,'w'))
 
 def set_dummy():
     global dummy
@@ -201,6 +215,7 @@ monty_el.grid(column=0, row=0, padx=8, pady=2)
 
 ttk.Label(monty_el, text="Eyelink IP").grid(column=0, row=0, sticky='W', padx=8, pady=4)
 ttk.Label(monty_el, text="Sample Rate").grid(column=0, row=1, sticky='W', padx=8, pady=4)
+ttk.Label(monty_el, text="Calibrate Type").grid(column=0, row=2, sticky='W', padx=8, pady=4)
 
 eyelink_ip_stringVar = tk.StringVar(master = edsper)
 eyelink_ip_stringVar.set(eyelink_ip)
@@ -212,6 +227,12 @@ eyelink_sample_rate_stringVar.set(eyelink_sample_rate)
 eyelink_sample_rate_entry = ttk.Combobox(monty_el, width=9, textvariable = eyelink_sample_rate_stringVar)
 eyelink_sample_rate_entry['values'] = ('250', '500', '1000', '2000')
 eyelink_sample_rate_entry.grid(column=1, row=1, sticky='W', padx=8, pady=4)
+
+eyelink_cal_type_stringVar = tk.StringVar(master = edsper)
+eyelink_cal_type_stringVar.set(eyelink_cal_type)
+eyelink_cal_type_entry = ttk.Combobox(monty_el, width=9, textvariable = eyelink_cal_type_stringVar)
+eyelink_cal_type_entry['values'] = ('H3', 'HV3', 'HV5', 'HV9', 'HV13')
+eyelink_cal_type_entry.grid(column=1, row=2, sticky='W', padx=8, pady=4)
 #---------------------------------------------------------------------------------------------------------#
 
 # 初始化 iMotions 参数面板 --------------------------------------------------------------------------------
@@ -234,7 +255,7 @@ imotions_port_entry.grid(column=1, row=1, sticky='W', padx=8, pady=4)
 
 # 初始化 Display 参数面板 --------------------------------------------------------------------------------
 monty_display = ttk.LabelFrame(edsper, text='Display')
-monty_display.grid(column=1, row=0, padx=8, pady=4, rowspan=2, columnspan=3)
+monty_display.grid(column=1, row=0, padx=8, pady=4, rowspan=1, columnspan=3)
 # 添加Lable
 ttk.Label(monty_display, text="显示器长边").grid(column=1, row=1, sticky='W')
 ttk.Label(monty_display, text="显示器短边").grid(column=1, row=2, sticky='W')
@@ -297,8 +318,9 @@ def connect():
                 Tracker = pylink.EyeLink(str(eyelink_ip))
                 Tracker.openDataFile('edsper.edf') # open edf file 
                 Tracker.sendCommand('sample_rate '+str(eyelink_sample_rate)) # set sample rate
-
-
+                tk.sendCommand('link_sample_data  = LEFT,RIGHT,GAZE,GAZERES,PUPIL,HREF,AREA,STATUS,INPUT')
+                tk.sendCommand('screen_pixel_coords = 0 0 %d %d' % ((display_x_res-1),(display_y_res-1)))
+                tk.sendCommand('calibration_type = HV9')
 
                 # 使输入框失效
                 display_y_size_pix_entry['state']='disable'
