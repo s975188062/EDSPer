@@ -318,9 +318,9 @@ def connect():
                 Tracker = pylink.EyeLink(str(eyelink_ip))
                 Tracker.openDataFile('edsper.edf') # open edf file 
                 Tracker.sendCommand('sample_rate '+str(eyelink_sample_rate)) # set sample rate
-                tk.sendCommand('link_sample_data  = LEFT,RIGHT,GAZE,GAZERES,PUPIL,HREF,AREA,STATUS,INPUT')
-                tk.sendCommand('screen_pixel_coords = 0 0 %d %d' % ((display_x_res-1),(display_y_res-1)))
-                tk.sendCommand('calibration_type = HV9')
+                Tracker.sendCommand('link_sample_data  = LEFT,RIGHT,GAZE,GAZERES,PUPIL,HREF,AREA,STATUS,INPUT')
+                Tracker.sendCommand('screen_pixel_coords = 0 0 %d %d' % ((display_x_res-1),(display_y_res-1)))
+                Tracker.sendCommand('calibration_type = HV9')
 
                 # 使输入框失效
                 display_y_size_pix_entry['state']='disable'
