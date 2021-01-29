@@ -1,6 +1,6 @@
 # To do List ------------------------------------------------
 # 每次connect成功时修改lastrun的属性
-# 
+# post_data 函数
 # -----------------------------------------------------------
 import tkinter as tk
 from tkinter import ttk
@@ -15,15 +15,12 @@ import webbrowser
 import os
 import threading
 import configparser
+import time
 
-# 声明全局状态变量
-global is_posting
+# 状态变量
 is_posting = 0
-global is_connected
 is_connected = 0
-global is_calibrated
 is_calibrated = 0
-global dummy
 dummy = 0
 
 # 声明EL句柄
@@ -291,10 +288,11 @@ state_stringVar.set('欢迎！请先检查硬件参数，再启动转发。')
 #---------------------------------------------------------------------------------------------------------#
 
 class posting_thread(threading.Thread):
-    def __init__(self, imootions_ip, imotions_port):
-        
+    def __init__(self,imotions_ip,imotions_port):
+
         threading.Thread.__init__(self)
-        self.imootions_ip = imootions_ip
+
+        self.imotions_ip = imotions_ip
         self.imotions_port = imotions_port
 
         self.__flag = threading.Event()     # 用于暂停线程的标识
@@ -305,12 +303,13 @@ class posting_thread(threading.Thread):
     def run(self):
         while self.__running.isSet():
             self.__flag.wait()      # 为True时立即返回, 为False时阻塞直到内部的标识位为True后返回
-            pass
-    def pause_post(self):
+            print(str(is_posting))
+            time.sleep(0.1)
+    def pause(self):
         self.__flag.clear()     # 设置为False, 让线程阻塞
-    def continue_post(self):
+    def cont(self):
         self.__flag.set()    # 设置为True, 让线程停止阻塞
-    def stop_post(self):
+    def stop(self):
         self.__flag.set()       # 将线程从暂停状态恢复, 如何已经暂停的话
         self.__running.clear()        # 设置为False    
 
@@ -320,14 +319,31 @@ def post_data():
     global data_poster
 
     if is_posting == 0:
+        
+        if dummy ==0:
 
-        data_poster = posting_thread()
+            with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as sock:
+                sock.bind((imotions_ip,int(imotions_port)))
+                state_stringVar.set('请在iMotions中RReConnectSenser')
+                sock.listen()
+                connection, client_address = sock.accept()
+        else:
+            print('请在iMotions中RReConnectSenser')
+            state_stringVar.set('已建立虚拟连接')
+        
+        try:
+            data_poster = posting_thread(imotions_ip,imotions_port)
+            data_poster.start()
 
-        state_stringVar.set('转发中……')
-        post_button['text']='暂停'
-        is_posting = 1
-
+            state_stringVar.set('转发中……')
+            post_button['text']='暂停'
+            is_posting = 1
+        except:
+            state_stringVar.set('转发失败')
     else:
+
+        data_poster.pause()
+        print('post over')
 
         state_stringVar.set('中断')
         post_button['text']='继续'
@@ -348,7 +364,8 @@ def connect():
                 Tracker.sendCommand('sample_rate '+str(eyelink_sample_rate)) # set sample rate
                 Tracker.sendCommand('link_sample_data  = LEFT,RIGHT,GAZE,GAZERES,PUPIL,HREF,AREA,STATUS,INPUT')
                 Tracker.sendCommand('screen_pixel_coords = 0 0 %d %d' % ((display_x_res-1),(display_y_res-1)))
-                Tracker.sendCommand('calibration_type = HV9')
+                Tracker.sendCommand('calibration_type = '+str(eyelink_cal_type))
+                error = tk.startRecording(1,1,1,1)
 
                 # 使输入框失效
                 display_y_size_pix_entry['state']='disable'
@@ -359,6 +376,7 @@ def connect():
                 imotions_port_entry['state']='disable'
                 eyelink_ip_entry['state']='disable'
                 eyelink_sample_rate_entry['state']='disable'
+                eyelink_cal_type_entry['state']='disable'
 
                 cal_button['state']='normal'
                 post_button['state']='normal'
@@ -378,8 +396,11 @@ def connect():
             imotions_port_entry['state']='disable'
             eyelink_ip_entry['state']='disable'
             eyelink_sample_rate_entry['state']='disable'
+            eyelink_cal_type_entry['state']='disable'
 
+            connect_button['text']='断开连接'
             post_button['state']='normal'
+            is_connected = 1
     else:
         # 重启输入框
         display_y_size_pix_entry['state']='normal'
@@ -390,10 +411,12 @@ def connect():
         imotions_port_entry['state']='normal'
         eyelink_ip_entry['state']='normal'
         eyelink_sample_rate_entry['state']='normal'
+        eyelink_cal_type_entry['state']='normal'
 
         cal_button['state']='disable'
         post_button['state']='disable'
         connect_button['text']='连接'
+        state_stringVar.set('连接已断开')
         is_connected = 0
 
 def cal_el():
