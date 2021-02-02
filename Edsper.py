@@ -9,6 +9,7 @@ from tkinter import Menu
 from tkinter import Spinbox
 from tkinter import filedialog
 from tkinter import messagebox
+import random
 import pylink
 import socket
 import webbrowser
@@ -301,10 +302,60 @@ class posting_thread(threading.Thread):
         self.__running.set()      # 将running设置为True
         
     def run(self):
-        while self.__running.isSet():
-            self.__flag.wait()      # 为True时立即返回, 为False时阻塞直到内部的标识位为True后返回
-            print(str(is_posting))
-            time.sleep(0.1)
+        global Tracker
+        global display_x_res
+        global display_y_res
+        global eyelink_sample_rate
+        global dummy
+
+        counter = 0
+        timecount = 0
+        sample_interval = int(1000/int(eyelink_sample_rate))
+
+        with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as sock:
+            sock.bind((imotions_ip,int(imotions_port)))
+            sock.listen()
+            connection, client_address = sock.accept()
+
+        with connection:
+            while self.__running.isSet():
+                self.__flag.wait()      # 为True时立即返回, 为False时阻塞直到内部的标识位为True后返回
+
+                if dummy == 0:
+                    dt = Tracker.getNewestSample()
+                    if dt is not None:
+                        if dt.isRightSample():
+                            gaze = dt.getRightEye().getGaze()
+                            href = dt.getRightEye().getHREF()
+                            raw  = dt.getRightEye().getRawPupil()
+                            pupil= dt.getRightEye().getPupilSize()
+                        elif dt.isLeftSample():
+                            gaze = dt.getLeftEye().getGaze()
+                            href = dt.getLeftEye().getHREF()
+                            raw  = dt.getLeftEye().getRawPupil()
+                            pupil= dt.getLeftEye().getPupilSize()
+                    
+                    counter = counter + 1
+                    timecount = timecount + sample_interval
+                    x = gaze[0]/int(display_x_res)
+                    y = gaze[1]/int(display_y_res)
+                    pupil_left = 0.002 #in meter (2mm)
+                    pupil_right = 0.002 #in meter (2mm)
+                else:
+                    counter = counter + 1
+                    timecount = timecount + sample_interval
+                    x = random.random()
+                    y = random.random()
+                    pupil_left = 0.002 #in meter (2mm)
+                    pupil_right = 0.002 #in meter (2mm)
+                    time.sleep((sample_interval/1000))
+
+                data = ('<REC CNT="{}" TIME="{}" LPOGX="{}" LPOGY="{}" LPOGV="1" RPOGX="{}" RPOGY="{}" RPOGV="1" LPCX="0.046200" LPCY="0.927400" LPD="100" LPS="1" LPV="1" '.format(counter,timecount,x,y,x,y) +
+                        'RPCX="0.406200" RPCY="0.927400" RPD="100" RPS="1.02" RPV="1" ' +
+                        'LEYEX="-0.027770" LEYEY="-0.004590" LEYEX="0.63645" LPUPILD="{}" LPUPILV="1" '.format(pupil_left) +
+                        'REYEX="-0.027770" REYEY="-0.004590" REYEZ="0.63645" RPUPILD="{}" RPUPILV="1" />\r\n'.format(pupil_right))
+                connection.send(bytearray(data,'utf-8'))
+
     def pause(self):
         self.__flag.clear()     # 设置为False, 让线程阻塞
     def cont(self):
@@ -319,17 +370,6 @@ def post_data():
     global data_poster
 
     if is_posting == 0:
-        
-        if dummy ==0:
-
-            with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as sock:
-                sock.bind((imotions_ip,int(imotions_port)))
-                state_stringVar.set('请在iMotions中RReConnectSenser')
-                sock.listen()
-                connection, client_address = sock.accept()
-        else:
-            print('请在iMotions中RReConnectSenser')
-            state_stringVar.set('已建立虚拟连接')
         
         try:
             data_poster = posting_thread(imotions_ip,imotions_port)
@@ -349,23 +389,49 @@ def post_data():
         post_button['text']='继续'
         is_posting = 0
 
-def connect():
+def connect_el():
     
     global Tracker
     global is_connected
 
     if is_connected == 0:
         if dummy == 0:
+
+            global display_x_res
+            global display_y_res
+            global display_x_size
+            global display_y_size
+            global display_distance
+            global display_ip
+            global eyelink_ip
+            global eyelink_sample_rate
+            global imotions_ip
+            global imotions_port
+
+            # 设置被试机参数 为 全局变量
+            display_x_res = display_x_size_pix_stringVar.get()
+            display_y_res = display_y_size_pix_stringVar.get()
+            display_x_size = display_x_size_psysical_stringVar.get()
+            display_y_size = display_y_size_psysical_stringVar.get()
+
+            # 设置眼动主试机参数 为 全局变量
+            eyelink_ip = eyelink_ip_stringVar.get()
+            eyelink_sample_rate = eyelink_sample_rate_stringVar.get()
+            eyelink_cal_type = eyelink_cal_type_stringVar.get()
+
+            imotions_ip = imotions_ip_stringVar.get()
+            imotions_port = imotions_port_stringVar.get()
+
             try: #尝试连接Eyelink Host
                 state_stringVar.set('Try to connect to Eyelink.')
                 print('Try to connect to Eyelink.')
-                Tracker = pylink.EyeLink(str(eyelink_ip))
+                Tracker = pylink.EyeLink(eyelink_ip)
                 Tracker.openDataFile('edsper.edf') # open edf file 
                 Tracker.sendCommand('sample_rate '+str(eyelink_sample_rate)) # set sample rate
                 Tracker.sendCommand('link_sample_data  = LEFT,RIGHT,GAZE,GAZERES,PUPIL,HREF,AREA,STATUS,INPUT')
-                Tracker.sendCommand('screen_pixel_coords = 0 0 %d %d' % ((display_x_res-1),(display_y_res-1)))
-                Tracker.sendCommand('calibration_type = '+str(eyelink_cal_type))
-                error = tk.startRecording(1,1,1,1)
+                Tracker.sendCommand('screen_pixel_coords = 0 0 %d %d' % ((int(display_x_res)-1),(int(display_y_res)-1)))
+                Tracker.sendCommand('calibration_type = '+eyelink_cal_type)
+                error = Tracker.startRecording(1,1,1,1)
 
                 # 使输入框失效
                 display_y_size_pix_entry['state']='disable'
@@ -383,6 +449,8 @@ def connect():
 
                 connect_button['text']='断开连接'
                 is_connected = 1
+
+                state_stringVar.set('已连接，请开始校准。')
             except:
                 state_stringVar.set('连接失败')
         else: # dummy = 1
@@ -402,6 +470,12 @@ def connect():
             post_button['state']='normal'
             is_connected = 1
     else:
+
+        if dummy == 0:
+            Tracker.stopRecording() # stop recording
+            Tracker.closeDataFile() # close EDF data file on the Host
+            Tracker.close() 
+
         # 重启输入框
         display_y_size_pix_entry['state']='normal'
         display_x_size_pix_entry['state']='normal'
@@ -415,9 +489,11 @@ def connect():
 
         cal_button['state']='disable'
         post_button['state']='disable'
+
         connect_button['text']='连接'
         state_stringVar.set('连接已断开')
         is_connected = 0
+
 
 def cal_el():
     global Tracker
@@ -428,9 +504,10 @@ def cal_el():
     err = Tracker.startRecording(1,1,1,1)
     print(err)
     pylink.pumpDelay(100) # cache some samples for event parsing
+    state_stringVar.set('校准完成，请开始转发。')
 
 # 添加button
-connect_button = ttk.Button(edsper,text="连接",width=9,command=connect)   
+connect_button = ttk.Button(edsper,text="连接",width=9,command=connect_el)   
 connect_button.grid(column=1,row=3,sticky='e',padx=8,pady=2)
 
 cal_button = ttk.Button(edsper,text="校准",width=9,command=cal_el)   
