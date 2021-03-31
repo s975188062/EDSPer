@@ -308,6 +308,7 @@ class posting_thread(threading.Thread):
         global eyelink_sample_rate
         global dummy
 
+        lasttimestap = 0
         counter = 0
         timecount = 0
         sample_interval = int(1000/int(eyelink_sample_rate))
@@ -341,6 +342,15 @@ class posting_thread(threading.Thread):
                     y = gaze[1]/int(display_y_res)
                     pupil_left = 0.002 #in meter (2mm)
                     pupil_right = 0.002 #in meter (2mm)
+
+                    if dt.getTime() > lasttimestap :
+                        data = ('<REC CNT="{}" TIME="{}" LPOGX="{}" LPOGY="{}" LPOGV="1" RPOGX="{}" RPOGY="{}" RPOGV="1" LPCX="0.046200" LPCY="0.927400" LPD="100" LPS="1" LPV="1" '.format(counter,timecount,x,y,x,y) +
+                                'RPCX="0.406200" RPCY="0.927400" RPD="100" RPS="1.02" RPV="1" ' +
+                                'LEYEX="-0.027770" LEYEY="-0.004590" LEYEX="0.63645" LPUPILD="{}" LPUPILV="1" '.format(pupil_left) +
+                                'REYEX="-0.027770" REYEY="-0.004590" REYEZ="0.63645" RPUPILD="{}" RPUPILV="1" />\r\n'.format(pupil_right))
+                        connection.send(bytearray(data,'utf-8'))
+                        lasttimestap = dt.getTime() 
+
                 else:
                     counter = counter + 1
                     timecount = timecount + sample_interval
@@ -349,12 +359,14 @@ class posting_thread(threading.Thread):
                     pupil_left = 0.002 #in meter (2mm)
                     pupil_right = 0.002 #in meter (2mm)
                     time.sleep((sample_interval/1000))
+                    
+                    data = ('<REC CNT="{}" TIME="{}" LPOGX="{}" LPOGY="{}" LPOGV="1" RPOGX="{}" RPOGY="{}" RPOGV="1" LPCX="0.046200" LPCY="0.927400" LPD="100" LPS="1" LPV="1" '.format(counter,timecount,x,y,x,y) +
+                                'RPCX="0.406200" RPCY="0.927400" RPD="100" RPS="1.02" RPV="1" ' +
+                                'LEYEX="-0.027770" LEYEY="-0.004590" LEYEX="0.63645" LPUPILD="{}" LPUPILV="1" '.format(pupil_left) +
+                                'REYEX="-0.027770" REYEY="-0.004590" REYEZ="0.63645" RPUPILD="{}" RPUPILV="1" />\r\n'.format(pupil_right))
+                    connection.send(bytearray(data,'utf-8'))
 
-                data = ('<REC CNT="{}" TIME="{}" LPOGX="{}" LPOGY="{}" LPOGV="1" RPOGX="{}" RPOGY="{}" RPOGV="1" LPCX="0.046200" LPCY="0.927400" LPD="100" LPS="1" LPV="1" '.format(counter,timecount,x,y,x,y) +
-                        'RPCX="0.406200" RPCY="0.927400" RPD="100" RPS="1.02" RPV="1" ' +
-                        'LEYEX="-0.027770" LEYEY="-0.004590" LEYEX="0.63645" LPUPILD="{}" LPUPILV="1" '.format(pupil_left) +
-                        'REYEX="-0.027770" REYEY="-0.004590" REYEZ="0.63645" RPUPILD="{}" RPUPILV="1" />\r\n'.format(pupil_right))
-                connection.send(bytearray(data,'utf-8'))
+
 
     def pause(self):
         self.__flag.clear()     # 设置为False, 让线程阻塞
